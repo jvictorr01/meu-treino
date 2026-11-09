@@ -1,0 +1,55 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Meu Treino</title><link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Treino">
+<link rel="apple-touch-icon" href="/icon-180.png"><meta name="theme-color" content="#0f1115">
+<style>
+:root{--bg:#0f1115;--card:#181b22;--line:#262a33;--tx:#eef0f4;--mu:#8a90a0;--ac:#ff5a1f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px -apple-system,system-ui,sans-serif;padding:env(safe-area-inset-top) 0 calc(80px + env(safe-area-inset-bottom))}
+header{padding:18px 18px 6px}h1{margin:0;font-size:28px}header p{margin:4px 0 0;color:var(--mu)}
+nav{position:sticky;top:0;z-index:5;display:flex;gap:8px;padding:10px 18px;background:var(--bg)}
+nav button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--tx);font-weight:600;font-size:15px}
+nav button.on{background:var(--ac);border-color:var(--ac)}
+main{padding:0 14px}.grp{margin:18px 4px 6px;color:var(--ac);font-weight:700;font-size:13px;letter-spacing:.08em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:12px;overflow:hidden}
+.card.done{opacity:.55}.imgs{display:flex;background:#fff}.imgs img{width:50%;height:150px;object-fit:cover}
+.bd{padding:12px 14px}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.top h3{margin:0;font-size:17px}.chk{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:none;color:#fff;font-size:16px;flex:none}
+.done .chk{background:#2bb673;border-color:#2bb673}
+table{width:100%;border-collapse:collapse;margin-top:10px}th{color:var(--mu);font-size:12px;font-weight:500;text-align:left;padding:2px 4px}
+td{padding:3px 4px}td:first-child{color:var(--mu);width:44px;font-size:14px}
+input{width:100%;padding:9px;border-radius:10px;border:1px solid var(--line);background:#0f1115;color:var(--tx);font-size:16px;text-align:center}
+.row{display:flex;gap:8px;margin-top:8px}.row button{flex:1;padding:8px;border-radius:10px;border:1px dashed var(--line);background:none;color:var(--mu);font-size:14px}
+.reset{display:block;margin:20px auto;background:none;border:1px solid var(--line);color:var(--mu);padding:10px 16px;border-radius:12px}
+</style></head><body>
+<header><h1>Meu Treino</h1><p id="sub"></p></header>
+<nav id="nav"></nav><main id="m"></main>
+<script src="/data.js"></script>
+<script>
+const KEY='treino-v1';let S={};try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const dow=new Date().getDay();let cur=dow>=5||dow==0?2:dow>=3?1:0;
+function st(d,i){const k=d+'_'+i;if(!S[k]){const w=PLANO[d].ex[i].w;S[k]={s:w.map(v=>({kg:v,r:''})),done:false}}return S[k]}
+function render(){
+ document.getElementById('nav').innerHTML=PLANO.map((p,i)=>`<button class="${i==cur?'on':''}" onclick="cur=${i};render();scrollTo(0,0)">${p.dia}</button>`).join('');
+ document.getElementById('sub').textContent=PLANO[cur].titulo;
+ let h='',lg=null;
+ PLANO[cur].ex.forEach((e,i)=>{const s=st(cur,i);
+  if(e.g!==lg){if(e.g)h+=`<div class="grp">${e.g}</div>`;lg=e.g}
+  h+=`<div class="card ${s.done?'done':''}"><div class="imgs"><img src="/img/${e.id}_0.jpg" loading="lazy" alt=""><img src="/img/${e.id}_1.jpg" loading="lazy" alt=""></div>
+  <div class="bd"><div class="top"><h3>${EX[e.id]}</h3><button class="chk" onclick="tg(${i})">${s.done?'✓':''}</button></div>
+  <table><tr><th>Série</th><th>Peso (kg)</th><th>Reps</th></tr>
+  ${s.s.map((x,j)=>`<tr><td>${j+1}ª</td><td><input inputmode="decimal" value="${x.kg}" onchange="up(${i},${j},'kg',this.value)"></td><td><input inputmode="numeric" placeholder="—" value="${x.r}" onchange="up(${i},${j},'r',this.value)"></td></tr>`).join('')}
+  </table><div class="row"><button onclick="add(${i})">+ série</button><button onclick="rm(${i})">− série</button></div></div></div>`});
+ h+=`<button class="reset" onclick="clr()">Desmarcar concluídos do dia</button>`;
+ document.getElementById('m').innerHTML=h;save()}
+function up(i,j,f,v){st(cur,i).s[j][f]=v;save()}
+function tg(i){const s=st(cur,i);s.done=!s.done;render()}
+function add(i){const s=st(cur,i).s;s.push({kg:s.length?s[s.length-1].kg:'',r:''});render()}
+function rm(i){const s=st(cur,i).s;if(s.length>1)s.pop();render()}
+function clr(){PLANO[cur].ex.forEach((_,i)=>st(cur,i).done=false);render()}
+render();
+if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js');
+</script></body></html>
