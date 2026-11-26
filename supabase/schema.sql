@@ -66,3 +66,6 @@ drop policy if exists "own settings" on public.user_settings;
 create policy "own settings" on public.user_settings
   for all to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- recarrega o cache da API para as tabelas aparecerem na hora
+notify pgrst, 'reload schema';
