@@ -1,0 +1,10 @@
+# credenciais / configuração local (gerada no build pela Vercel)
+config.js
+.env
+.env.*
+!.env.example
+
+dist/
+node_modules/
+.vercel/
+.DS_Store
